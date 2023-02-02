@@ -40,8 +40,8 @@ class MotherCompetitions():
     def __init__(self) -> None:
         self.helper_date = None
         self.helper_time = None
-
-    def todays_game(self, game):
+    
+    def theday_game(self, game, date):
         game_dict = {}
         if game[0].a:
             game_date = game[0].a.text
@@ -53,7 +53,7 @@ class MotherCompetitions():
             else:
                 logging.warning('Failed, no date available:{}'.format(str(game)))
                 return False
-        if not is_today(game_dict['date']):
+        if not is_theDay(game_dict['date'], date):
             return False
             
         game_time = game[1].text.strip()
@@ -76,6 +76,10 @@ class MotherCompetitions():
         assert game_dict['time']
         
         return game_dict
+        
+    def todays_game(self, game):
+        result = self.theday_game(game, date.today())
+        return result
 
 class DomesticLeague(MotherCompetitions):
 
@@ -89,50 +93,58 @@ class DomesticLeague(MotherCompetitions):
         gameday = gameday.table.tbody.find_all('tr')
         return [game.find_all('td') for game in gameday if not game.has_attr('class')] #9 matches 
     
-test
-# test_league = 'Fortuna Liga - Łączny terminarz Transfermarkt.html'
-# with open(test_league) as tp:
-#     soup = BeautifulSoup(tp, 'html.parser')
-#     a = Domestic_league()
-#     for gameday in a.oneSeason_gamedays(soup):
-#         for game in a.oneDay_games(gameday):
-#             today = a.todays_game(game)
-#             if today:
-#                 print(today)
 
-   
-headers = {
-'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36',
-}
 
-for name, link in main_leagues.items():
-    r = requests.get(link, headers=headers)
-    soup = BeautifulSoup(r.text, 'html.parser')    
-    a = DomesticLeague()
+
+def main():
+
+    # test_league = 'Fortuna Liga - Łączny terminarz Transfermarkt.html'
+    # with open(test_league) as tp:
+    #     soup = BeautifulSoup(tp, 'html.parser')
+    #     a = Domestic_league()
+    #     for gameday in a.oneSeason_gamedays(soup):
+    #         for game in a.oneDay_games(gameday):
+    #             today = a.todays_game(game)
+    #             if today:
+    #                 print(today)
+
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36',
+    }
+
+    for name, link in main_leagues.items():
+        r = requests.get(link, headers=headers)
+        soup = BeautifulSoup(r.text, 'html.parser')    
+        a = DomesticLeague()
+        matches = []
+        for gameday in a.oneSeason_gamedays(soup):
+            for game in a.oneDay_games(gameday):
+                today = a.todays_game(game)
+                if today:
+                    matches.append(today)
+                    
+        if matches:
+            print(matches)
+            # subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
+
+
     matches = []
-    for gameday in a.oneSeason_gamedays(soup):
-        for game in a.oneDay_games(gameday):
-            today = a.todays_game(game)
-            if today:
-                matches.append(today)
-                
-    if matches:
-        subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
+    for name, link in second_leagues.items():
+        submatches = []
+        r = requests.get(link, headers=headers)
+        soup = BeautifulSoup(r.text, 'html.parser')    
+        a = DomesticLeague()
+        for gameday in a.oneSeason_gamedays(soup):
+            for game in a.oneDay_games(gameday):
+                today = a.todays_game(game)
+                if today:
+                    submatches.append(today)
+        if submatches:
+            matches.append(15*'*' + '   ' + name + '  ' + 15*'*')
+            matches.extend(submatches)
 
+    print(matches)
+    #subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')
 
-matches = []
-for name, link in second_leagues.items():
-    submatches = []
-    r = requests.get(link, headers=headers)
-    soup = BeautifulSoup(r.text, 'html.parser')    
-    a = DomesticLeague()
-    for gameday in a.oneSeason_gamedays(soup):
-        for game in a.oneDay_games(gameday):
-            today = a.todays_game(game)
-            if today:
-                submatches.append(today)
-    if submatches:
-        matches.append(15*'*' + '   ' + name + '  ' + 15*'*')
-        matches.extend(submatches)
-
-subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')
+if __name__ == '__main__':
+    main()  
