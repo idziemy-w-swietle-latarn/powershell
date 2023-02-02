@@ -4,6 +4,7 @@ from transfermarkt import main_leagues, second_leagues
 from datetime import date, datetime
 from meczbot import subreddit
 import logging
+import re
 
 
 class FutureGame(Exception):
@@ -36,23 +37,27 @@ def is_future(date_string):
 
 class MotherCompetitions():
     
+    
+    
     def __init__(self) -> None:
         self.helper_date = None
         self.helper_time = None
+        self.date_pattern = re.compile(r"\b(\d{2})[.\s](.*)[.\s](\d{4})\b")
         logging.basicConfig(filename='failed_extractions.log', encoding='utf-8', level=logging.WARN)
         
     def theday_game(self, game, date) -> dict or bool:
         game_dict = {}
-        if game[0].a:
-            game_date = game[0].a.text
+        game_date = self.date_pattern.search(game[0].text)
+        print(game_date)
+        if game_date:
+            game_date = game_date.group(0)
             game_dict['date'] = game_date
             self.helper_date = game_date
+        elif self.helper_date:
+            game_dict['date'] = self.helper_date
         else:
-            if self.helper_date:
-                game_dict['date'] = self.helper_date
-            else:
-                logging.warning('Failed, no date available:{}'.format(str(game)))
-                raise NoDate
+            logging.warning('Failed, no date available:{}'.format(str(game)))
+            raise NoDate
         if not is_theDay(game_dict['date'], date):
             return False
             
