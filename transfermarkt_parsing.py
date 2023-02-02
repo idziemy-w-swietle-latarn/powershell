@@ -35,25 +35,12 @@ def is_past(date_string):
 def is_future(date_string):
     return datetime.strptime(date_string, '%d.%m.%Y').date() > date.today()
 
-class Mother():
-    pass
-
-class Domestic_league():
+class MotherCompetitions():
 
     def __init__(self) -> None:
         self.helper_date = None
         self.helper_time = None
 
-    @staticmethod
-    def oneSeason_gamedays(soup):
-        gamedays = soup.body.div.main.find_all('div', {'class': 'content-box-headline'})
-        return [gameday.parent for gameday in gamedays]
-    
-    @staticmethod        
-    def oneDay_games(gameday):
-        gameday = gameday.table.tbody.find_all('tr')
-        return [game.find_all('td') for game in gameday if not game.has_attr('class')] #9 matches 
-    
     def todays_game(self, game):
         game_dict = {}
         if game[0].a:
@@ -90,6 +77,20 @@ class Domestic_league():
         
         return game_dict
 
+class DomesticLeague(MotherCompetitions):
+
+    @staticmethod
+    def oneSeason_gamedays(soup):
+        gamedays = soup.body.div.main.find_all('div', {'class': 'content-box-headline'})
+        return [gameday.parent for gameday in gamedays]
+    
+    @staticmethod        
+    def oneDay_games(gameday):
+        gameday = gameday.table.tbody.find_all('tr')
+        return [game.find_all('td') for game in gameday if not game.has_attr('class')] #9 matches 
+    
+
+
 # test_league = 'Fortuna Liga - Łączny terminarz Transfermarkt.html'
 # with open(test_league) as tp:
 #     soup = BeautifulSoup(tp, 'html.parser')
@@ -108,7 +109,7 @@ headers = {
 for name, link in main_leagues.items():
     r = requests.get(link, headers=headers)
     soup = BeautifulSoup(r.text, 'html.parser')    
-    a = Domestic_league()
+    a = DomesticLeague()
     matches = []
     for gameday in a.oneSeason_gamedays(soup):
         for game in a.oneDay_games(gameday):
@@ -116,15 +117,16 @@ for name, link in main_leagues.items():
             if today:
                 matches.append(today)
                 
-    # if matches:
-    #     subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
+    if matches:
+        subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
+
 
 matches = []
 for name, link in second_leagues.items():
     submatches = []
     r = requests.get(link, headers=headers)
     soup = BeautifulSoup(r.text, 'html.parser')    
-    a = Domestic_league()
+    a = DomesticLeague()
     for gameday in a.oneSeason_gamedays(soup):
         for game in a.oneDay_games(gameday):
             today = a.todays_game(game)
