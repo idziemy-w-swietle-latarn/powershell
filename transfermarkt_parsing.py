@@ -89,8 +89,7 @@ class DomesticLeague(MotherCompetitions):
         gameday = gameday.table.tbody.find_all('tr')
         return [game.find_all('td') for game in gameday if not game.has_attr('class')] #9 matches 
     
-
-
+test
 # test_league = 'Fortuna Liga - Łączny terminarz Transfermarkt.html'
 # with open(test_league) as tp:
 #     soup = BeautifulSoup(tp, 'html.parser')
