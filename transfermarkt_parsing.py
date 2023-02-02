@@ -5,7 +5,6 @@ from datetime import date, datetime
 from meczbot import subreddit
 import logging
 
-logging.basicConfig(filename='failed_extractions.log', encoding='utf-8', level=logging.WARN)
 
 class FutureGame(Exception):
     "Raised when game will be played tomorrow or later"
@@ -36,12 +35,13 @@ def is_future(date_string):
     return datetime.strptime(date_string, '%d.%m.%Y').date() > date.today()
 
 class MotherCompetitions():
-
+    
     def __init__(self) -> None:
         self.helper_date = None
         self.helper_time = None
-    
-    def theday_game(self, game, date):
+        logging.basicConfig(filename='failed_extractions.log', encoding='utf-8', level=logging.WARN)
+        
+    def theday_game(self, game, date) -> dict or bool:
         game_dict = {}
         if game[0].a:
             game_date = game[0].a.text
@@ -52,7 +52,7 @@ class MotherCompetitions():
                 game_dict['date'] = self.helper_date
             else:
                 logging.warning('Failed, no date available:{}'.format(str(game)))
-                return False
+                raise NoDate
         if not is_theDay(game_dict['date'], date):
             return False
             
@@ -65,7 +65,7 @@ class MotherCompetitions():
                 game_dict['time'] = self.helper_time
             else:
                 logging.warning('Failed, no time available:{}'.format(str(game)))
-                return False
+                game_dict['time'] = 'b/d'
                 
         game_dict['host'] = game[2].a.text.strip()
         game_dict['guest'] = game[6].a.text.strip()
@@ -92,21 +92,24 @@ class DomesticLeague(MotherCompetitions):
     def oneDay_games(gameday):
         gameday = gameday.table.tbody.find_all('tr')
         return [game.find_all('td') for game in gameday if not game.has_attr('class')] #9 matches 
-    
 
+class DomesticCup(MotherCompetitions):
+
+    @staticmethod
+    def two_top_rounds(soup: BeautifulSoup):
+        rounds = soup.find('div', {'class': 'large-8 columns'}).div.find_next_sibling('div').table.find_all('tbody')
+        if len(rounds) >= 2:
+            return rounds[0:2]
+        else:
+            return rounds[0:1]
+    
+    @staticmethod
+    def games_from_round(round):
+        round = round.find_all('tr')
+        return [game.find_all('td') for game in round if not game.has_attr('class')]
 
 
 def main():
-
-    # test_league = 'Fortuna Liga - Łączny terminarz Transfermarkt.html'
-    # with open(test_league) as tp:
-    #     soup = BeautifulSoup(tp, 'html.parser')
-    #     a = Domestic_league()
-    #     for gameday in a.oneSeason_gamedays(soup):
-    #         for game in a.oneDay_games(gameday):
-    #             today = a.todays_game(game)
-    #             if today:
-    #                 print(today)
 
     headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36',
