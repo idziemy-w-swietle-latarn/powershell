@@ -19,7 +19,7 @@ def title_text(competition_name):
     return competition_name + ' ' + str(date.today())
 
 def body_text(games: list[dict]):
-    games = [str(match) for match in games]
+    games = [str(match).replace('\'', '') for match in games]
     return '\n\n'.join(games)
     
 def is_theDay(checked_date_string:date, theDay:date):
@@ -45,10 +45,9 @@ class MotherCompetitions():
         self.date_pattern = re.compile(r"\b(\d{2})[.\s](.*)[.\s](\d{4})\b")
         logging.basicConfig(filename='failed_extractions.log', encoding='utf-8', level=logging.WARN)
         
-    def theday_game(self, game, date) -> dict or bool:
+    def single_game(self, game) -> dict or bool:
         game_dict = {}
         game_date = self.date_pattern.search(game[0].text)
-        print(game_date)
         if game_date:
             game_date = game_date.group(0)
             game_dict['date'] = game_date
@@ -58,8 +57,7 @@ class MotherCompetitions():
         else:
             logging.warning('Failed, no date available:{}'.format(str(game)))
             raise NoDate
-        if not is_theDay(game_dict['date'], date):
-            return False
+
             
         game_time = game[1].text.strip()
         if game_time:
@@ -81,10 +79,6 @@ class MotherCompetitions():
         assert game_dict['time']
         
         return game_dict
-        
-    def todays_game(self, game):
-        result = self.theday_game(game, date.today())
-        return result
 
 class DomesticLeague(MotherCompetitions):
 
@@ -99,7 +93,10 @@ class DomesticLeague(MotherCompetitions):
         return [game.find_all('td') for game in gameday if not game.has_attr('class')] #9 matches 
 
 class DomesticCup(MotherCompetitions):
-
+    
+    # @staticmethod
+    # def 
+    
     @staticmethod
     def two_top_rounds(soup: BeautifulSoup):
         rounds = soup.find('div', {'class': 'large-8 columns'}).div.find_next_sibling('div').table.find_all('tbody')
@@ -127,13 +124,14 @@ def main():
         matches = []
         for gameday in a.oneSeason_gamedays(soup):
             for game in a.oneDay_games(gameday):
-                today = a.todays_game(game)
+                today = a.single_game(game)
                 if today:
-                    matches.append(today)
+                    if is_theDay(today['date'], date.today()):
+                        matches.append(today)
                     
         if matches:
             print(matches)
-            # subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
+#            subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
 
 
     matches = []
@@ -144,15 +142,16 @@ def main():
         a = DomesticLeague()
         for gameday in a.oneSeason_gamedays(soup):
             for game in a.oneDay_games(gameday):
-                today = a.todays_game(game)
+                today = a.single_game(game)
                 if today:
-                    submatches.append(today)
+                    if is_theDay(today['date'], date.today()):
+                        submatches.append(today)
         if submatches:
             matches.append(15*'*' + '   ' + name + '  ' + 15*'*')
             matches.extend(submatches)
 
     print(matches)
-    #subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')
+#    subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')
 
 if __name__ == '__main__':
     main()  
