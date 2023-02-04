@@ -3,6 +3,7 @@ from transfermarkt_parsing import is_theDay
 from bs4 import BeautifulSoup
 import datetime
 import requests
+import pytest
 
 a = MotherCompetitions()
 headers = {

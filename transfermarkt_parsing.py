@@ -42,7 +42,7 @@ class MotherCompetitions():
     def __init__(self) -> None:
         self.helper_date = None
         self.helper_time = None
-        self.date_pattern = re.compile(r"\b(\d{2})[.\s](.*)[.\s](\d{4})\b")
+        self.date_pattern = re.compile(r"\b(\d{1,2})[.\s](.*)[.\s](\d{4})\b")
         logging.basicConfig(filename='failed_extractions.log', encoding='utf-8', level=logging.WARN)
         
     def single_game(self, game) -> dict or bool:
@@ -157,6 +157,5 @@ def main():
 
     print(matches)
 #    subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')
-
 if __name__ == '__main__':
     main()  
