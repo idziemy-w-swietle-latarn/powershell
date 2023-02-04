@@ -94,8 +94,13 @@ class DomesticLeague(MotherCompetitions):
 
 class DomesticCup(MotherCompetitions):
     
-    # @staticmethod
-    # def 
+    @staticmethod
+    def parse_date(string_date: str):
+        mapping = {'sty': '01', 'lut': '02', 'mar': '03', 'kwi': '04', 'maj': '05', 'cze': '06', 
+                   'lip': '07', 'sie': '08', 'wrz': '09', 'paz': '10', 'lis': '11', 'gru': '12'}
+        string_date = string_date.split(' ')
+        string_date[1] = mapping[string_date[1]]
+        return '.'.join(string_date)
     
     @staticmethod
     def two_top_rounds(soup: BeautifulSoup):
