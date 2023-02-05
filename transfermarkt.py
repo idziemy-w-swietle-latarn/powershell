@@ -23,7 +23,7 @@ main_cups = {'Fortuna Puchar Polski':'https://www.transfermarkt.pl/fortuna-polni
               'Puchar Króla': 'https://www.transfermarkt.pl/copa-del-rey/gesamtspielplan/pokalwettbewerb/CDR/saison_id/2022'
               }
 
-second_ccups = {'DFB Pokal':'https://www.transfermarkt.pl/dfb-pokal/gesamtspielplan/pokalwettbewerb/DFB/saison_id/2022',
+second_cups = {'DFB Pokal':'https://www.transfermarkt.pl/dfb-pokal/gesamtspielplan/pokalwettbewerb/DFB/saison_id/2022',
                 'Coupe de France': 'https://www.transfermarkt.pl/coupe-de-france/gesamtspielplan/pokalwettbewerb/FRC/saison_id/2022',
                 'Puchar Portugalii': 'https://www.transfermarkt.pl/taca-de-portugal-placard/gesamtspielplan/pokalwettbewerb/POPO/saison_id/2022',
                 'Puchar Holandii': 'https://www.transfermarkt.pl/toto-knvb-beker/gesamtspielplan/pokalwettbewerb/NLP/saison_id/2022',

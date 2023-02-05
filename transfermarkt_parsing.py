@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from transfermarkt import main_leagues, second_leagues
+from transfermarkt import main_leagues, second_leagues, main_cups, second_cups
 from datetime import date, datetime
 from meczbot import subreddit
 import logging
@@ -97,7 +97,7 @@ class DomesticCup(MotherCompetitions):
     @staticmethod
     def parse_date(string_date: str):
         mapping = {'sty': '01', 'lut': '02', 'mar': '03', 'kwi': '04', 'maj': '05', 'cze': '06', 
-                   'lip': '07', 'sie': '08', 'wrz': '09', 'paz': '10', 'lis': '11', 'gru': '12'}
+                   'lip': '07', 'sie': '08', 'wrz': '09', 'paź': '10', 'lis': '11', 'gru': '12'}
         string_date = string_date.split(' ')
         string_date[1] = mapping[string_date[1]]
         return '.'.join(string_date)
@@ -115,6 +115,8 @@ class DomesticCup(MotherCompetitions):
         round = round.find_all('tr')
         return [game.find_all('td') for game in round if not game.has_attr('class')]
 
+class EuroCup(DomesticCup):
+    pass
 
 def main():
 
@@ -130,14 +132,28 @@ def main():
         for gameday in a.oneSeason_gamedays(soup):
             for game in a.oneDay_games(gameday):
                 today = a.single_game(game)
-                if today:
-                    if is_theDay(today['date'], date.today()):
-                        matches.append(today)
-                    
+                if is_theDay(today['date'], date.today()):
+                    matches.append(today)                    
         if matches:
             print(matches)
-#            subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
+            subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
 
+    for name, link in main_cups.items():
+        r = requests.get(link, headers=headers)
+        soup = BeautifulSoup(r.text, 'html.parser')    
+        b = DomesticCup()
+        matches = []
+        rounds = b.two_top_rounds(soup=soup)
+        for round in rounds:
+            round = b.games_from_round(round)
+            for game in round:
+                today = b.single_game(game)
+                today['date'] = b.parse_date(today['date'])
+                if is_theDay(today['date'], date.today()):
+                    matches.append(today)
+        if matches:
+            print(matches)
+            subreddit.submit(title_text(name), selftext = body_text(matches), discussion_type='CHAT')
 
     matches = []
     for name, link in second_leagues.items():
@@ -148,14 +164,33 @@ def main():
         for gameday in a.oneSeason_gamedays(soup):
             for game in a.oneDay_games(gameday):
                 today = a.single_game(game)
-                if today:
-                    if is_theDay(today['date'], date.today()):
-                        submatches.append(today)
+                if is_theDay(today['date'], date.today()):
+                    submatches.append(today)
         if submatches:
             matches.append(15*'*' + '   ' + name + '  ' + 15*'*')
             matches.extend(submatches)
-
     print(matches)
-#    subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')
+    subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')
+    
+    
+    matches = []
+    for name, link in second_cups.items():
+        r = requests.get(link, headers=headers)
+        soup = BeautifulSoup(r.text, 'html.parser')    
+        b = DomesticCup()
+        rounds = b.two_top_rounds(soup=soup)
+        for round in rounds:
+            round = b.games_from_round(round)
+            for game in round:
+                today = b.single_game(game)
+                today['date'] = b.parse_date(today['date'])
+                if is_theDay(today['date'], date.today()):
+                    submatches.append(today)
+        if submatches:
+            matches.append(15*'*' + '   ' + name + '  ' + 15*'*')
+            matches.extend(submatches)
+    print(matches)
+    subreddit.submit(title_text('Inne ligi'), selftext = body_text(matches), discussion_type='CHAT')    
+
 if __name__ == '__main__':
     main()  
