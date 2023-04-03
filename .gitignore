@@ -1,7 +1,0 @@
-*.html
-addon.txt
-*.log
-meczbot.py
-*Transfermarkt_files
-.vscode
-__pycache__
